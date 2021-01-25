@@ -95,6 +95,7 @@ func Main() fiber.Handler {
 				return fiber.ErrInternalServerError
 			}
 
+			ctx.Set(fiber.HeaderCacheControl, "private")
 			ctx.Set(fiber.HeaderContentType, fiber.MIMETextHTML)
 			return ctx.SendString(html)
 		}
