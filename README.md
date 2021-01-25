@@ -30,3 +30,6 @@ Conspire uses [viper](https://github.com/spf13/viper) to fetch configuration val
 - [ ] Add uploading support
 - [ ] Add tests
 - [ ] Improve authentication scheme (currently HTTP basic auth)
+
+### Image attribution
+<sub>Icons made by [iconixar](https://www.flaticon.com/authors/iconixar) from www.flaticon.com</sub>
