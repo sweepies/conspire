@@ -1,4 +1,4 @@
-# conspire
+# ![logo](https://user-images.githubusercontent.com/7191851/105656063-3f889680-5e76-11eb-857e-38fab7106630.png) conspire
 Conspire is a file sharing server written in Go. It uses any S3-compatible storage as a backend and supports caching. It supports any number of domains, and has the ability to serve a hostname-specific index page and favicon.
 
 ## Index
@@ -26,5 +26,7 @@ Conspire uses [viper](https://github.com/spf13/viper) to fetch configuration val
 | s3_bucket | yes | N/A | S3-compatible API bucket
 | cache_enabled | no | true | Whether or not to cache responses in memory
 
-## CLI
-Coming soon
+## TODO
+- [ ] Add uploading support
+- [ ] Add tests
+- [ ] Improve authentication scheme (currently HTTP basic auth)
