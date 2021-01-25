@@ -15,7 +15,7 @@ import (
 )
 
 // VERSION is the current version of this package
-const VERSION = "0.0.3"
+const VERSION = "0.0.4"
 
 var shouldHave []string = []string{
 	"S3_REGION",
@@ -35,7 +35,8 @@ func main() {
 
 	if viper.GetBool("cache_enabled") {
 		app.Use(cache.New(cache.Config{
-			Expiration: 30 * time.Minute,
+			Expiration:   30 * time.Minute,
+			CacheControl: true,
 			Next: func(ctx *fiber.Ctx) bool {
 				path := ctx.Path()
 				return path == "/favicon.ico" || path == "/"
