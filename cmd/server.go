@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,7 +40,7 @@ func main() {
 			CacheControl: true,
 			Next: func(ctx *fiber.Ctx) bool {
 				path := ctx.Path()
-				return path == "/favicon.ico" || path == "/"
+				return path == "/favicon.ico" || path == "/" || strings.Contains(ctx.Get("User-Agent"), "Discord")
 			},
 		}))
 	}
