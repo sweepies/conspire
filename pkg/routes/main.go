@@ -113,7 +113,7 @@ func Main() fiber.Handler {
 		}
 
 		ctx.Set(fiber.HeaderContentType, *metadata.ContentType)
-		ctx.Set(fiber.HeaderCacheControl, "public, max-age=max-age=31536000")
+		ctx.Set(fiber.HeaderCacheControl, "public, max-age=31536000")
 		return ctx.SendStream(bytes.NewReader(buf.Bytes()), int(size))
 	}
 }
