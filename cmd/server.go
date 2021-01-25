@@ -15,7 +15,7 @@ import (
 )
 
 // VERSION is the current version of this package
-const VERSION = "0.0.2"
+const VERSION = "0.0.3"
 
 var shouldHave []string = []string{
 	"S3_REGION",
@@ -36,6 +36,10 @@ func main() {
 	if viper.GetBool("cache_enabled") {
 		app.Use(cache.New(cache.Config{
 			Expiration: 30 * time.Minute,
+			Next: func(ctx *fiber.Ctx) bool {
+				path := ctx.Path()
+				return path == "/favicon.ico" || path == "/"
+			},
 		}))
 	}
 
@@ -86,8 +90,3 @@ func configure() {
 		log.Fatal().Strs("values", dontHave).Msg("Missing required configuration values")
 	}
 }
-
-// uploading
-// better authentication
-// different logging formats (json to use with logdna or something?) https://github.com/rs/zerolog/issues/73
-// make this stateless and distributed
