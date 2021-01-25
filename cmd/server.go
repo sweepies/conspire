@@ -2,11 +2,8 @@ package main
 
 import (
 	"os"
-	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -16,7 +13,7 @@ import (
 )
 
 // VERSION is the current version of this package
-const VERSION = "0.0.6"
+const VERSION = "0.0.7"
 
 var shouldHave []string = []string{
 	"S3_REGION",
@@ -33,26 +30,6 @@ func main() {
 	app = fiber.New()
 
 	app.Use(recover.New())
-
-	if viper.GetBool("cache_enabled") {
-		app.Use(cache.New(cache.Config{
-			Expiration:   30 * time.Minute,
-			CacheControl: true,
-			Next: func(ctx *fiber.Ctx) bool {
-				return strings.Contains(ctx.Get("User-Agent"), "Discord")
-			},
-			KeyGenerator: func(ctx *fiber.Ctx) string {
-				path := ctx.Path()
-
-				// seperate keys for each hostname for the favicon and index routes
-				if path == "/favicon.ico" || path == "/" {
-					path = path + " " + ctx.Hostname()
-				}
-
-				return path
-			},
-		}))
-	}
 
 	app.Use("/upload", middleware.Auth())
 	app.Use(middleware.Attribution())
@@ -85,7 +62,6 @@ func configure() {
 	viper.AutomaticEnv()
 	viper.SetDefault("s3_endpoint", "s3.amazonaws.com")
 	viper.SetDefault("s3_region", "us-east-1")
-	viper.SetDefault("cache_enabled", true)
 
 	var dontHave []string
 
