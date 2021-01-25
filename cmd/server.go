@@ -16,7 +16,7 @@ import (
 )
 
 // VERSION is the current version of this package
-const VERSION = "0.0.5"
+const VERSION = "0.0.6"
 
 var shouldHave []string = []string{
 	"S3_REGION",
@@ -39,8 +39,17 @@ func main() {
 			Expiration:   30 * time.Minute,
 			CacheControl: true,
 			Next: func(ctx *fiber.Ctx) bool {
+				return strings.Contains(ctx.Get("User-Agent"), "Discord")
+			},
+			KeyGenerator: func(ctx *fiber.Ctx) string {
 				path := ctx.Path()
-				return path == "/favicon.ico" || path == "/" || strings.Contains(ctx.Get("User-Agent"), "Discord")
+
+				// seperate keys for each hostname for the favicon and index routes
+				if path == "/favicon.ico" || path == "/" {
+					path = path + " " + ctx.Hostname()
+				}
+
+				return path
 			},
 		}))
 	}
