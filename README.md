@@ -26,6 +26,9 @@ Conspire uses [viper](https://github.com/spf13/viper) to fetch configuration val
 | s3_bucket | yes | N/A | S3-compatible API bucket
 | cache_enabled | no | true | Whether or not to cache responses in memory
 
+## Known issues
+- Cloudflare caching (and probably other caches) breaks User-Agent specific responses like the [Discord embed generator](https://github.com/sweepyoface/conspire/blob/master/pkg/routes/main.go#L90). If you use Cloudflare, install this shim using Workers, which does fundamentally the same thing: https://git.io/JtZM1.
+
 ## TODO
 - [ ] Add uploading support
 - [ ] Add tests
