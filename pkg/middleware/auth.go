@@ -15,13 +15,15 @@ type user struct {
 	Password string
 }
 
+// TODO: Find a better authentication method
+
 // Auth returns the authentication middleware
 func Auth() fiber.Handler {
 	// read json
 	data, err := ioutil.ReadFile(filepath.Join("users.json"))
 
 	if err != nil {
-		log.Fatal().Err(err).Send()
+		log.Fatal().Err(err).Msg("Error reading users file")
 	}
 
 	// deserialize

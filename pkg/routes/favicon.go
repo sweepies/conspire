@@ -7,7 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Favicon returns the favicon handler ("/favicon.ico")
+// Favicon returns the favicon handler
 func Favicon() fiber.Handler {
 
 	return func(ctx *fiber.Ctx) error {
@@ -20,12 +20,11 @@ func Favicon() fiber.Handler {
 		err := ctx.SendFile(file)
 
 		if err != nil {
-			go log.Debug().Err(err).Str("key", ctx.Path()).Msg("Request for key failed")
+			err2 := ctx.SendFile(filepath.Join("static", "favicon", "default.ico"))
 
-			err = ctx.SendFile(filepath.Join("static", "favicon", "default.ico"))
-
-			if err == nil {
-				return ctx.SendStatus(fiber.StatusOK)
+			if err2 != nil {
+				go log.Err(err).Msg("Error sending default favicon")
+				return fiber.ErrInternalServerError
 			}
 		}
 
