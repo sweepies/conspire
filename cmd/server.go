@@ -18,7 +18,7 @@ import (
 )
 
 // VERSION is the current version of this package
-const VERSION = "0.0.7"
+const VERSION = "0.0.8"
 
 var shouldHave []string = []string{
 	"S3_REGION",
