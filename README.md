@@ -1,8 +1,13 @@
 # ![logo](https://user-images.githubusercontent.com/7191851/105656063-3f889680-5e76-11eb-857e-38fab7106630.png) conspire
-Conspire is a file sharing server written in Go. It uses any S3-compatible storage as a backend and supports any number of domains. It has the ability to serve a hostname-specific index page and favicon.
+Conspire is a file sharing server written in Go. It uses any S3-compatible storage as a backend and comes with multi-domain support out of the box. It has the ability to serve a hostname-specific index page and favicon.
 
 ## Index
-The first file found in the `static/index` directory with the name of the request hostname, excluding the extension, will be served as the index page for that hostname. The extension of that file will be used to determine the MIME type.
+The logic for determining which file to serve as the index is basically the following psuedocode:
+
+```glob("static/index/{host}.*")[0]```
+
+
+That is, the first file found in the `static/index` directory named with the request hostname (extension ignored) will be served as the index page for that hostname. The extension of that file will be used to determine the MIME type.
 
 ## Favicon
 Conspire will serve `{host}.ico` under `static/favicon` on the `/favicon.ico` path.
@@ -28,7 +33,7 @@ Conspire uses [viper](https://github.com/spf13/viper) to fetch configuration val
 | set_public_acl | no | false | Whether to set public read access on uploaded objects (most likely for use with public_fetch_url)
 
 ### Users
-Uploading requires basic authentication. Users are configured via `users.json` in the working directory. The schema is as follows:
+Uploading requires HTML basic authentication. Users are configured via `users.json` in the working directory. The schema is as follows:
 ```json
 [
     {
@@ -36,6 +41,6 @@ Uploading requires basic authentication. Users are configured via `users.json` i
         "password": "password"
     }
 ]
-
+```
 ### Image attribution
 <sub>Icons made by [iconixar](https://www.flaticon.com/authors/iconixar) from www.flaticon.com</sub>
