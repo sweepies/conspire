@@ -22,8 +22,10 @@ Conspire uses [viper](https://github.com/spf13/viper) to fetch configuration val
 | key | required | default | description
 | --- | --- | --- | ---
 | s3_endpoint | no | s3.amazonaws.com | S3-compatible API endpoint
-| s3_region | yes | us-east-1 | S3-compatible API region
+| s3_region | no | us-east-1 | S3-compatible API region
 | s3_bucket | yes | N/A | S3-compatible API bucket
+| public_fetch_url | no | N/A | If provided, files are fetched from this URL instead of the S3-compatible API
+| set_public_acl | no | false | Whether to set public read access on uploaded objects (most likely for use with public_fetch_url)
 
 ### Users
 Uploading requires basic authentication. Users are configured via `users.json` in the working directory. The schema is as follows:
