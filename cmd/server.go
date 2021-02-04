@@ -60,7 +60,7 @@ func main() {
 
 	s3 = <-chanS3
 
-	app.Get("/:file", routes.File(s3, "file"))
+	app.Get("/:file", routes.File(s3, true, "file"))
 	app.Post("/upload", routes.Upload(s3))
 
 	log.Fatal().Err(app.Listen(":8080")).Send()
@@ -81,6 +81,7 @@ func configure() {
 	viper.AutomaticEnv()
 	viper.SetDefault("s3_endpoint", "s3.amazonaws.com")
 	viper.SetDefault("s3_region", "us-east-1")
+	viper.SetDefault("default_cache_control", "public, max-age=31536000")
 
 	var dontHave []string
 
