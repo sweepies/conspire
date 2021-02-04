@@ -89,7 +89,7 @@ func configure() {
 	for _, key := range shouldHave {
 		viper.BindEnv(key)
 
-		if len(viper.GetString(key)) == 0 {
+		if viper.GetString(key) == "" {
 			dontHave = append(dontHave, key)
 		}
 	}
