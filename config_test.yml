@@ -1,0 +1,6 @@
+s3_endpoint: sfo2.digitaloceanspaces.com
+s3_region: sfo2
+s3_bucket: conspire-testing-a1633ae7
+public_Fetch_url: https://conspire-testing-a1633ae7.sfo2.digitaloceanspaces.com
+set_public_acl: true
+default_cache_control: public, max-age=31536000

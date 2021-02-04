@@ -28,6 +28,6 @@ func Favicon() fiber.Handler {
 			}
 		}
 
-		return nil
+		return ctx.SendStatus(200)
 	}
 }
