@@ -21,7 +21,6 @@ import (
 const VERSION = "0.0.8"
 
 var shouldHave []string = []string{
-	"S3_REGION",
 	"S3_BUCKET",
 }
 
