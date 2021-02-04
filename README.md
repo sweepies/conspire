@@ -34,26 +34,6 @@ Uploading requires basic authentication. Users are configured via `users.json` i
         "password": "password"
     }
 ]
-```
-
-## Known issues
-- Cloudflare caching (and probably other caches) breaks User-Agent specific responses like the [Discord embed generator](https://github.com/sweepyoface/conspire/blob/master/pkg/routes/main.go#L37). If you use Cloudflare, install this shim using Workers, which does fundamentally the same thing:
-```js
-const template = "<html><head><meta property=\"og:image\" content=\"{PATH}\"></head></html>"
-
-addEventListener('fetch', event => {
-  let request = event.request
-  let ua = request.headers.get("User-Agent")
-  let path = new URL(request.url).pathname
-  let expr = new RegExp(/.*(png|jpg|jpeg|webp|gif)$/)
-  
-  // test for user agent and image type
-  if (ua !== null && ua.includes("Discord") && expr.test(path)) {
-    const html = template.replace("{PATH}", path)
-    event.respondWith(new Response(html, {status: 200, headers: new Headers({"Content-Type": "text/html"})}))
-  }
-})
-```
 
 ### Image attribution
 <sub>Icons made by [iconixar](https://www.flaticon.com/authors/iconixar) from www.flaticon.com</sub>

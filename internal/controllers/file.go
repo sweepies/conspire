@@ -1,4 +1,4 @@
-package routes
+package controllers
 
 import (
 	"io/ioutil"
@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/gofiber/fiber/v2"
@@ -16,9 +15,9 @@ import (
 	"github.com/sweepyoface/conspire/pkg/s3util"
 )
 
-func newPublicFetchURLHandler(fetchURL url.URL, forbiddenIs404 bool, param string) fiber.Handler {
+func newPublicFetchURLHandler(fetchURL url.URL, forbiddenIs404 bool) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		file := ctx.Params(param)
+		file := ctx.Params("file")
 
 		fetchURL.Path = path.Join(file)
 
@@ -69,17 +68,17 @@ func newPublicFetchURLHandler(fetchURL url.URL, forbiddenIs404 bool, param strin
 }
 
 // File returns the file serving handler
-func File(s3 *s3util.Helper, forbiddenIs404 bool, param string) fiber.Handler {
+func File(s3 *s3util.Helper, forbiddenIs404 bool) fiber.Handler {
 	bucket := viper.GetString("s3_bucket")
 
 	pubURL, err := url.Parse(viper.GetString("public_fetch_url"))
 
 	if err == nil && pubURL.String() != "" {
-		return newPublicFetchURLHandler(*pubURL, forbiddenIs404, param)
+		return newPublicFetchURLHandler(*pubURL, forbiddenIs404)
 	}
 
 	return func(ctx *fiber.Ctx) error {
-		file := ctx.Params(param)
+		file := ctx.Params("file")
 
 		// fetch object metadata
 		metadata, err := s3.HeadObject(bucket, file)
@@ -105,18 +104,6 @@ func File(s3 *s3util.Helper, forbiddenIs404 bool, param string) fiber.Handler {
 			}
 		} else {
 			contentType = *metadata.ContentType
-		}
-
-		// TODO: Add a configuration option to enable or disable Discord embeds
-
-		// send HTML to the discord crawler
-		// this shows a preview embed and preserves the url in chat
-		if strings.Contains(ctx.Get("User-Agent"), "Discord") && strings.HasPrefix(contentType, "image") {
-			ctx.Set(fiber.HeaderCacheControl, "private")
-
-			return ctx.Render("image", fiber.Map{
-				"Url": ctx.Path(),
-			})
 		}
 
 		bytes, err := s3.DownloadObject(bucket, file)

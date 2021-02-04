@@ -11,8 +11,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
-	"github.com/sweepyoface/conspire/pkg/middleware"
-	"github.com/sweepyoface/conspire/pkg/routes"
+	"github.com/sweepyoface/conspire/internal/controllers"
+	"github.com/sweepyoface/conspire/internal/handlers"
+	"github.com/sweepyoface/conspire/internal/middleware"
 	"github.com/sweepyoface/conspire/pkg/s3util"
 )
 
@@ -51,8 +52,8 @@ func main() {
 
 	// optimized for fast startup
 
-	app.Get("/", routes.Index())
-	app.Get("/favicon.ico", routes.Favicon())
+	app.Get("/", controllers.Index())
+	app.Get("/favicon.ico", controllers.Favicon())
 
 	app.Use(recover.New())
 	app.Use(middleware.Attribution())
@@ -60,8 +61,9 @@ func main() {
 
 	s3 = <-chanS3
 
-	app.Get("/:file", routes.File(s3, true, "file"))
-	app.Post("/upload", routes.Upload(s3))
+	app.Get("/:file/preview", handlers.ImagePreview)
+	app.Get("/:file", controllers.File(s3, true))
+	app.Post("/upload", controllers.Upload(s3))
 
 	log.Fatal().Err(app.Listen(":8080")).Send()
 }
