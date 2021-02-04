@@ -50,7 +50,7 @@ func Upload(s3 *s3util.Helper) fiber.Handler {
 		}
 
 		// TODO: Add a configuration option to randomly generate file names, instead of accepting user input
-		_, err4 := s3.UploadObject(bucket, fileHead.Filename, file, mimeType, "public, max-age=31536000")
+		_, err4 := s3.UploadObject(bucket, fileHead.Filename, file, mimeType, viper.GetString("default_cache_control"))
 
 		if err4 != nil {
 			go log.Err(err4).Msg("Unexpected error uploading file")
