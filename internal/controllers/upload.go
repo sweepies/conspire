@@ -21,6 +21,10 @@ func Upload(s3 *s3util.Helper) fiber.Handler {
 		fileHead, err := ctx.FormFile("file")
 
 		if err != nil {
+			if ctx.Get("Content-Type") != "multipart/form-data" {
+				ctx.Status(fiber.StatusBadRequest)
+				return ctx.JSON(fiber.Map{"status": "error", "message": "invalid content type"})
+			}
 			ctx.Status(fiber.StatusBadRequest)
 			return ctx.JSON(fiber.Map{"status": "error", "message": "file not found"})
 		}
@@ -61,6 +65,7 @@ func Upload(s3 *s3util.Helper) fiber.Handler {
 
 		url.Path = path.Join(url.Path, fileHead.Filename)
 
+		ctx.Status(fiber.StatusCreated)
 		// TODO: Add an option to choose randomly from a list of hostnames
 		return ctx.JSON(fiber.Map{"status": "success", "url": url.String()})
 	}
