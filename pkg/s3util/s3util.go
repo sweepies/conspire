@@ -38,37 +38,37 @@ func New() *Helper {
 }
 
 // HeadObject abstracts the S3 HeadObject action
-func (u Helper) HeadObject(bucket string, key string) (*s3.HeadObjectOutput, error) {
+func (h Helper) HeadObject(bucket string, key string) (*s3.HeadObjectOutput, error) {
 	input := s3.HeadObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
 	}
 
-	return u.Service.HeadObject(&input)
+	return h.Service.HeadObject(&input)
 }
 
 // GetObject abstracts the S3 GetObject action
-func (u Helper) GetObject(bucket string, key string) (*s3.GetObjectOutput, error) {
+func (h Helper) GetObject(bucket string, key string) (*s3.GetObjectOutput, error) {
 	input := s3.GetObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
 	}
 
-	return u.Service.GetObject(&input)
+	return h.Service.GetObject(&input)
 }
 
 // DeleteObject abstracts the S3 DeleteObject action
-func (u Helper) DeleteObject(bucket string, key string) (*s3.DeleteObjectOutput, error) {
+func (h Helper) DeleteObject(bucket string, key string) (*s3.DeleteObjectOutput, error) {
 	input := s3.DeleteObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
 	}
 
-	return u.Service.DeleteObject(&input)
+	return h.Service.DeleteObject(&input)
 }
 
 // DownloadObject abstracts an S3 multipart file download
-func (u Helper) DownloadObject(bucket string, key string) ([]byte, error) {
+func (h Helper) DownloadObject(bucket string, key string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -79,7 +79,7 @@ func (u Helper) DownloadObject(bucket string, key string) ([]byte, error) {
 
 	buf := aws.NewWriteAtBuffer([]byte{})
 
-	_, err := u.Downloader.DownloadWithContext(ctx, buf, &input)
+	_, err := h.Downloader.DownloadWithContext(ctx, buf, &input)
 
 	bytes := buf.Bytes()
 
@@ -87,7 +87,7 @@ func (u Helper) DownloadObject(bucket string, key string) ([]byte, error) {
 }
 
 // UploadObject abstracts an S3 multipart file upload
-func (u Helper) UploadObject(bucket string, key string, body io.Reader, contentType string, cacheControl string) (*s3manager.UploadOutput, error) {
+func (h Helper) UploadObject(bucket string, key string, body io.Reader, contentType string, cacheControl string) (*s3manager.UploadOutput, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -99,7 +99,7 @@ func (u Helper) UploadObject(bucket string, key string, body io.Reader, contentT
 		CacheControl: &cacheControl,
 	}
 
-	return u.Uploader.UploadWithContext(ctx, &input)
+	return h.Uploader.UploadWithContext(ctx, &input)
 }
 
 func connect() *session.Session {
