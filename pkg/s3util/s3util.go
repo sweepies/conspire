@@ -87,7 +87,7 @@ func (h Helper) DownloadObject(bucket string, key string) ([]byte, error) {
 }
 
 // UploadObject abstracts an S3 multipart file upload
-func (h Helper) UploadObject(bucket string, key string, body io.Reader, contentType string, cacheControl string) (*s3manager.UploadOutput, error) {
+func (h Helper) UploadObject(bucket string, key string, body io.Reader, contentType string, cacheControl string, makePublic bool) (*s3manager.UploadOutput, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -97,6 +97,10 @@ func (h Helper) UploadObject(bucket string, key string, body io.Reader, contentT
 		Body:         body,
 		ContentType:  &contentType,
 		CacheControl: &cacheControl,
+	}
+
+	if makePublic {
+		input.ACL = aws.String("public-read")
 	}
 
 	return h.Uploader.UploadWithContext(ctx, &input)
