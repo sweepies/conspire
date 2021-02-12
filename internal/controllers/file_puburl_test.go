@@ -1,12 +1,11 @@
 package controllers
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"io/ioutil"
 	"net/http/httptest"
 	"testing"
-
-	"crypto/sha256"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
