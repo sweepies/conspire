@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,17 +8,18 @@ import (
 )
 
 // Index returns the index page handler
-func Index() fiber.Handler {
+func Index(staticPath string) fiber.Handler {
 
 	return func(ctx *fiber.Ctx) error {
+		globPath := filepath.Join(staticPath, "index", ctx.Hostname()+".*")
 
-		files, _ := filepath.Glob(fmt.Sprintf("static/index/%s.*", ctx.Hostname()))
+		files, _ := filepath.Glob(globPath)
 
 		if len(files) != 0 {
 			return ctx.SendFile(files[0])
 		}
 
-		err := ctx.SendFile(filepath.Join("static", "index", "default.jpg"))
+		err := ctx.SendFile(filepath.Join(staticPath, "index", "default.jpg"))
 
 		if err != nil {
 			go log.Err(err).Msg("Error sending default index")

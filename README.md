@@ -16,7 +16,7 @@ Conspire will serve `{host}.ico` under `static/favicon` on the `/favicon.ico` pa
 Currently, there is no caching implemented. I recommend configuring this at the web server level or using a service like Cloudflare.
 
 ## Configuration
-Conspire uses [viper](https://github.com/spf13/viper) to fetch configuration values. This means it supports environment variables, JSON, TOML, YAML, HCL, envfile and Java properties config files. Any of these should work as long as the file is called `config.{ext}` and in the same directory as the binary.
+TODO
 
 <details>
 <summary>AWS credentials are required on top of these values, but are satisfied using the AWS SDK default credential provider chain</summary>

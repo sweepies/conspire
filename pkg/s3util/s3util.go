@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"github.com/sweepyoface/conspire/internal/configuration"
 )
 
 // Helper is a helper object for S3 actions using the AWS SDK
@@ -23,8 +23,8 @@ type Helper struct {
 }
 
 // New creates a new Helper object
-func New() *Helper {
-	session := connect()
+func New(config *configuration.Config) *Helper {
+	session := connect(config)
 	client := s3.New(session)
 
 	util := Helper{
@@ -106,15 +106,15 @@ func (h Helper) UploadObject(bucket string, key string, body io.Reader, contentT
 	return h.Uploader.UploadWithContext(ctx, &input)
 }
 
-func connect() *session.Session {
+func connect(config *configuration.Config) *session.Session {
 	var resolver endpoints.ResolverFunc = func(service, region string, opts ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
 		return endpoints.ResolvedEndpoint{
-			URL: endpoints.AddScheme(viper.GetString("s3_endpoint"), false),
+			URL: endpoints.AddScheme(config.S3.Endpoint, false),
 		}, nil
 	}
 
 	awsSession, err := session.NewSession(&aws.Config{
-		Region:           aws.String(viper.GetString("s3_region")),
+		Region:           aws.String(config.S3.Region),
 		EndpointResolver: resolver,
 	})
 

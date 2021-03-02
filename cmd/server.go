@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/template/html"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"github.com/sweepyoface/conspire/internal/configuration"
 	"github.com/sweepyoface/conspire/internal/controllers"
 	"github.com/sweepyoface/conspire/internal/handlers"
 	"github.com/sweepyoface/conspire/internal/middleware"
@@ -20,9 +20,7 @@ import (
 // VERSION is the current version of this package
 const VERSION = "0.0.9"
 
-var shouldHave []string = []string{
-	"S3_BUCKET",
-}
+var config configuration.Config
 
 var (
 	app *fiber.App
@@ -31,9 +29,8 @@ var (
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Info().Str("version", VERSION).Msg("Starting conspire")
 
-	configure()
+	config = configuration.Configure()
 
 	chanS3 := make(chan *s3util.Helper)
 	go initS3(chanS3)
@@ -41,6 +38,7 @@ func main() {
 	chanAuth := make(chan fiber.Handler)
 	go initAuth(chanAuth)
 
+	log.Info().Str("version", VERSION).Msg("Starting conspire")
 	app = fiber.New(fiber.Config{
 		Views:        html.New(path.Join("static", "templates"), ".html"),
 		ReadTimeout:  5 * time.Second,
@@ -51,8 +49,8 @@ func main() {
 
 	// optimized for fast startup
 
-	app.Get("/", controllers.Index())
-	app.Get("/favicon.ico", controllers.Favicon())
+	app.Get("/", controllers.Index("static"))
+	app.Get("/favicon.ico", controllers.Favicon("static"))
 
 	app.Use(recover.New())
 	app.Use(middleware.Attribution())
@@ -61,46 +59,14 @@ func main() {
 	s3 = <-chanS3
 
 	app.Get("/:file/preview", handlers.ImagePreview)
-	app.Get("/:file", controllers.File(s3, true))
-	app.Post("/upload", controllers.Upload(s3))
+	app.Get("/:file", controllers.File(&config, s3, true))
+	app.Post("/upload", controllers.Upload(&config, s3))
 
 	log.Fatal().Err(app.Listen(":8080")).Send()
 }
 
-func configure() {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Warn().Msg("Config file not found, proceeding with environment variables")
-		} else {
-			log.Fatal().Msg(err.Error())
-		}
-	}
-
-	viper.AutomaticEnv()
-	viper.SetDefault("s3_endpoint", "s3.amazonaws.com")
-	viper.SetDefault("s3_region", "us-east-1")
-	viper.SetDefault("default_cache_control", "public, max-age=31536000")
-
-	var dontHave []string
-
-	for _, key := range shouldHave {
-		viper.BindEnv(key)
-
-		if viper.GetString(key) == "" {
-			dontHave = append(dontHave, key)
-		}
-	}
-
-	if len(dontHave) != 0 {
-		log.Fatal().Strs("values", dontHave).Msg("Missing required configuration values")
-	}
-}
-
 func initS3(c chan *s3util.Helper) {
-	c <- s3util.New()
+	c <- s3util.New(&config)
 }
 
 func initAuth(c chan fiber.Handler) {

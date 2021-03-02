@@ -10,12 +10,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"github.com/sweepyoface/conspire/internal/configuration"
 )
 
 // FilePubURL returns the file serving handler for a publically accessible URL
-func FilePubURL(forbiddenIs404 bool) fiber.Handler {
-	fetchURL, err := url.Parse(viper.GetString("public_fetch_url"))
+func FilePubURL(config *configuration.Config, forbiddenIs404 bool) fiber.Handler {
+	fetchURL, err := url.Parse(config.PublicFetchURL)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error while parsing public fetch URL")
@@ -62,7 +62,7 @@ func FilePubURL(forbiddenIs404 bool) fiber.Handler {
 		}
 
 		if cacheControl == "" {
-			cacheControl = viper.GetString("default_cache_control")
+			cacheControl = config.DefaultCacheControl
 		}
 
 		ctx.Set(fiber.HeaderContentType, contentType)

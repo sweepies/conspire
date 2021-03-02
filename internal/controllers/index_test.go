@@ -11,7 +11,7 @@ import (
 func Test_Index(t *testing.T) {
 	app := fiber.New()
 
-	app.Get("/", Index())
+	app.Get("/", Index("../../static"))
 	req := httptest.NewRequest("GET", "/", nil)
 
 	resp, err := app.Test(req)
