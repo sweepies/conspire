@@ -13,10 +13,10 @@ import (
 )
 
 func Test_FilePubURL(t *testing.T) {
-	configuration.ConfigureTest()
+	config := configuration.Configure()
 
 	app := fiber.New()
-	app.Get("/:file", FilePubURL(true))
+	app.Get("/:file", FilePubURL(&config, true))
 
 	req := httptest.NewRequest("GET", "/gopher.png", nil)
 

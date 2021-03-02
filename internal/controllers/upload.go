@@ -8,13 +8,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
+	"github.com/sweepyoface/conspire/internal/configuration"
 	"github.com/sweepyoface/conspire/pkg/s3util"
 )
 
 // Upload returns the file upload handler
-func Upload(s3 *s3util.Helper) fiber.Handler {
-	bucket := viper.GetString("s3_bucket")
+func Upload(config *configuration.Config, s3 *s3util.Helper) fiber.Handler {
+	bucket := config.S3.Bucket
 
 	return func(ctx *fiber.Ctx) error {
 
@@ -54,7 +54,7 @@ func Upload(s3 *s3util.Helper) fiber.Handler {
 		}
 
 		// TODO: Add a configuration option to randomly generate file names, instead of accepting user input
-		_, err4 := s3.UploadObject(bucket, fileHead.Filename, file, mimeType, viper.GetString("default_cache_control"), viper.GetBool("set_public_acl"))
+		_, err4 := s3.UploadObject(bucket, fileHead.Filename, file, mimeType, config.DefaultCacheControl, config.SetPublicACL)
 
 		if err4 != nil {
 			go log.Err(err4).Msg("Unexpected error uploading file")

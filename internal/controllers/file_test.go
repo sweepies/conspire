@@ -14,10 +14,10 @@ import (
 )
 
 func Test_File(t *testing.T) {
-	configuration.ConfigureTest()
+	config := configuration.Configure()
 
 	app := fiber.New()
-	app.Get("/:file", File(s3util.New(), true))
+	app.Get("/:file", File(&config, s3util.New(&config), true))
 
 	req := httptest.NewRequest("GET", "/gopher.png", nil)
 

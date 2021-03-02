@@ -8,19 +8,17 @@ import (
 )
 
 // Favicon returns the favicon handler
-func Favicon() fiber.Handler {
+func Favicon(staticPath string) fiber.Handler {
 
 	return func(ctx *fiber.Ctx) error {
 		ctx.Set(fiber.HeaderContentType, "image/x-icon")
 
-		host := ctx.Hostname()
-		file := filepath.Join("static", "favicon", host+".ico")
+		file := filepath.Join(staticPath, "favicon", ctx.Hostname()+".ico")
 
-		// ask for forgiveness rather than permission
 		err := ctx.SendFile(file)
 
 		if err != nil {
-			err2 := ctx.SendFile(filepath.Join("static", "favicon", "default.ico"))
+			err2 := ctx.SendFile(filepath.Join(staticPath, "favicon", "default.ico"))
 
 			if err2 != nil {
 				go log.Err(err).Msg("Error sending default favicon")
