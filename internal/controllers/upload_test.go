@@ -18,7 +18,7 @@ import (
 )
 
 func Test_Upload(t *testing.T) {
-	config := configuration.Configure()
+	config := configuration.Configure("", "")
 
 	app := fiber.New()
 	app.Post("/", Upload(&config, s3util.New(&config)))

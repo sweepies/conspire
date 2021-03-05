@@ -13,7 +13,7 @@ import (
 )
 
 func Test_FilePubURL(t *testing.T) {
-	config := configuration.Configure()
+	config := configuration.Configure("", "")
 
 	app := fiber.New()
 	app.Get("/:file", FilePubURL(&config, true))

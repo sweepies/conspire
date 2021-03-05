@@ -1,6 +1,9 @@
 package configuration
 
 import (
+	"fmt"
+	"os"
+
 	goConfig "github.com/pcelvng/go-config"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/go-playground/validator.v9"
@@ -12,6 +15,8 @@ type Config struct {
 	PublicFetchURL      string          `env:"PUBLIC_FETCH_URL" flag:"url" help:"The URL to fetch from instead of using the S3 API" validate:"omitempty,url"`
 	SetPublicACL        bool            `env:"SET_PUBLIC_ACL" flag:"acl" help:"Whether or not to set a public read ACL on objects" validate:"omitempty"`
 	DefaultCacheControl string          `env:"CACHE_CONTROL" flag:"cache" help:"Cache-Control string to use" validate:"required"`
+
+	ShowVersion bool `flag:"version,v" help:"Show the program version" validate:"omitempty"`
 }
 
 // S3Configuration is the S3 config type
@@ -24,7 +29,7 @@ type S3Configuration struct {
 var validate *validator.Validate
 
 // Configure loads the application configuration
-func Configure() Config {
+func Configure(hash, date string) Config {
 	// defaults
 	config := Config{
 		S3: S3Configuration{
@@ -38,6 +43,11 @@ func Configure() Config {
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error loading config")
+	}
+
+	if config.ShowVersion {
+		fmt.Println("conspire version", hash+"-unstable", "("+date+")")
+		os.Exit(0)
 	}
 
 	validate = validator.New()
