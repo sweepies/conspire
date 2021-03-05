@@ -17,20 +17,23 @@ import (
 	"github.com/sweepyoface/conspire/pkg/s3util"
 )
 
-// VERSION is the current version of this package
-const VERSION = "0.0.9"
-
-var config configuration.Config
+var (
+	// CommitHash is the git commit hash of the current version
+	CommitHash string
+	// CommitDate is the git commit date of the current version
+	CommitDate string
+)
 
 var (
-	app *fiber.App
-	s3  *s3util.Helper
+	config configuration.Config
+	app    *fiber.App
+	s3     *s3util.Helper
 )
 
 func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	config = configuration.Configure()
+	config = configuration.Configure(CommitHash, CommitDate)
 
 	chanS3 := make(chan *s3util.Helper)
 	go initS3(chanS3)
@@ -38,7 +41,7 @@ func main() {
 	chanAuth := make(chan fiber.Handler)
 	go initAuth(chanAuth)
 
-	log.Info().Str("version", VERSION).Msg("Starting conspire")
+	log.Info().Str("version", CommitHash).Msg("Starting conspire")
 	app = fiber.New(fiber.Config{
 		Views:        html.New(path.Join("static", "templates"), ".html"),
 		ReadTimeout:  5 * time.Second,

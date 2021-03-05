@@ -14,7 +14,7 @@ import (
 )
 
 func Test_File(t *testing.T) {
-	config := configuration.Configure()
+	config := configuration.Configure("", "")
 
 	app := fiber.New()
 	app.Get("/:file", File(&config, s3util.New(&config), true))
