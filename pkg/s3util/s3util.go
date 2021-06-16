@@ -38,7 +38,7 @@ func New(config *configuration.Config) *Helper {
 }
 
 // HeadObject abstracts the S3 HeadObject action
-func (h Helper) HeadObject(bucket string, key string) (*s3.HeadObjectOutput, error) {
+func (h Helper) HeadObject(bucket, key string) (*s3.HeadObjectOutput, error) {
 	input := s3.HeadObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
@@ -48,7 +48,7 @@ func (h Helper) HeadObject(bucket string, key string) (*s3.HeadObjectOutput, err
 }
 
 // GetObject abstracts the S3 GetObject action
-func (h Helper) GetObject(bucket string, key string) (*s3.GetObjectOutput, error) {
+func (h Helper) GetObject(bucket, key string) (*s3.GetObjectOutput, error) {
 	input := s3.GetObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
@@ -58,7 +58,7 @@ func (h Helper) GetObject(bucket string, key string) (*s3.GetObjectOutput, error
 }
 
 // DeleteObject abstracts the S3 DeleteObject action
-func (h Helper) DeleteObject(bucket string, key string) (*s3.DeleteObjectOutput, error) {
+func (h Helper) DeleteObject(bucket, key string) (*s3.DeleteObjectOutput, error) {
 	input := s3.DeleteObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
@@ -68,7 +68,7 @@ func (h Helper) DeleteObject(bucket string, key string) (*s3.DeleteObjectOutput,
 }
 
 // DownloadObject abstracts an S3 multipart file download
-func (h Helper) DownloadObject(bucket string, key string) ([]byte, error) {
+func (h Helper) DownloadObject(bucket, key string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -87,7 +87,7 @@ func (h Helper) DownloadObject(bucket string, key string) ([]byte, error) {
 }
 
 // UploadObject abstracts an S3 multipart file upload
-func (h Helper) UploadObject(bucket string, key string, body io.Reader, contentType string, cacheControl string, makePublic bool) (*s3manager.UploadOutput, error) {
+func (h Helper) UploadObject(bucket, key string, body io.Reader, contentType, cacheControl string, makePublic bool) (*s3manager.UploadOutput, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
