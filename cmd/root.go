@@ -200,7 +200,13 @@ func run(cmd *cobra.Command, args []string) {
 		return ctx.Render("static/templates/file_preview", fields)
 	})
 
-	log.Fatal().Err(app.Listen(":8080")).Send()
+	port := os.Getenv("PORT")
+
+	if len(port) == 0 {
+		port = "8080"
+	}
+
+	log.Fatal().Err(app.Listen(":" + port)).Send()
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
