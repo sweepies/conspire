@@ -2,11 +2,8 @@ package cmd
 
 import (
 	"io/fs"
-	"mime"
 	"net/http"
 	"os"
-	"path"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -182,23 +179,6 @@ func run(cmd *cobra.Command, args []string) {
 	app.Get("/:file/preview", handlers.ImagePreview)
 	app.Get("/:file", controllers.File(s3))
 	app.Post("/:file", controllers.Upload(s3))
-
-	// TODO: move to controller
-	app.Get("/:file/preview", func(ctx *fiber.Ctx) error {
-		file := ctx.Params("file")
-		typ := mime.TypeByExtension(filepath.Ext(file))
-
-		fields := fiber.Map{
-			"fileName": file,
-			"URL":      path.Join("/", file),
-		}
-
-		if strings.HasPrefix(typ, "image") {
-			return ctx.Render("static/templates/image_preview", fields)
-		}
-
-		return ctx.Render("static/templates/file_preview", fields)
-	})
 
 	port := os.Getenv("PORT")
 
