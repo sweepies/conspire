@@ -45,7 +45,9 @@ func File(s3 *util.S3) fiber.Handler {
 			contentType = *metadata.ContentType
 		}
 
-		bytes, err := s3.DownloadObject(bucket, file)
+		writer := ctx.Response().BodyWriter()
+
+		err = s3.DownloadObject(bucket, file, writer)
 
 		if err != nil {
 			go log.Err(err).Msg("Unexpected S3 error")
@@ -60,6 +62,6 @@ func File(s3 *util.S3) fiber.Handler {
 			ctx.Set(fiber.HeaderCacheControl, *metadata.CacheControl)
 		}
 
-		return ctx.Send(bytes)
+		return nil
 	}
 }

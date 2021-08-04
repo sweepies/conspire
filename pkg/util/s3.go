@@ -14,6 +14,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type FakeWriterAt struct {
+	w io.Writer
+}
+
+func (fw FakeWriterAt) WriteAt(p []byte, offset int64) (n int, err error) {
+	// ignore 'offset' because we forced sequential downloads
+	return fw.w.Write(p)
+}
+
 type S3 struct {
 	Client     *s3.Client
 	Downloader *manager.Downloader
@@ -41,6 +50,7 @@ func NewS3(c chan *S3, endpoint string) {
 		Downloader: manager.NewDownloader(client),
 		Uploader:   manager.NewUploader(client),
 	}
+
 }
 
 func (s S3) ObjectExists(bucket, key string) (bool, error) {
@@ -64,7 +74,7 @@ func (s S3) HeadObject(bucket, key string) (*s3.HeadObjectOutput, error) {
 		Key:    &key,
 	}
 
-	return s.Client.HeadObject(context.TODO(), &input)
+	return s.Client.HeadObject(context.Background(), &input)
 }
 
 // GetObject abstracts the S3 GetObject action
@@ -88,8 +98,8 @@ func (s S3) DeleteObject(bucket, key string) (*s3.DeleteObjectOutput, error) {
 }
 
 // DownloadObject abstracts an S3 multipart file download
-func (s S3) DownloadObject(bucket, key string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (s S3) DownloadObject(bucket, key string, w io.Writer) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	input := s3.GetObjectInput{
@@ -97,13 +107,11 @@ func (s S3) DownloadObject(bucket, key string) ([]byte, error) {
 		Key:    &key,
 	}
 
-	buf := manager.NewWriteAtBuffer([]byte{})
+	s.Downloader.Concurrency = 1
 
-	_, err := s.Downloader.Download(ctx, buf, &input)
+	_, err := s.Downloader.Download(ctx, FakeWriterAt{w}, &input)
 
-	bytes := buf.Bytes()
-
-	return bytes, err
+	return err
 }
 
 // UploadObject abstracts an S3 multipart file upload
