@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -21,15 +22,19 @@ type S3 struct {
 
 // NewS3 creates a new S3 object
 func NewS3(c chan *S3, endpoint string) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	resolver := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
+		return aws.Endpoint{
+			URL: endpoint,
+		}, nil
+	})
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithEndpointResolver(resolver))
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error loading AWS configuration")
 	}
 
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.EndpointResolver = s3.EndpointResolverFromURL(endpoint)
-	})
+	client := s3.NewFromConfig(cfg)
 
 	c <- &S3{
 		Client:     client,
