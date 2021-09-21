@@ -55,12 +55,7 @@ func File(s3 *util.S3) fiber.Handler {
 		}
 
 		ctx.Set(fiber.HeaderContentType, contentType)
-
-		if metadata.CacheControl == nil {
-			ctx.Set(fiber.HeaderCacheControl, viper.GetString("cache"))
-		} else {
-			ctx.Set(fiber.HeaderCacheControl, *metadata.CacheControl)
-		}
+		ctx.Set(fiber.HeaderCacheControl, viper.GetString("cache"))
 
 		return nil
 	}
