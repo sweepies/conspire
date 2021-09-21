@@ -19,7 +19,7 @@ func File(s3 *util.S3) fiber.Handler {
 		file := ctx.Params("file")
 
 		// fetch object metadata
-		metadata, err := s3.HeadObject(bucket, file)
+		_, err := s3.HeadObject(bucket, file)
 
 		if err != nil {
 			if strings.Contains(err.Error(), "Not Found") {
@@ -33,16 +33,10 @@ func File(s3 *util.S3) fiber.Handler {
 			return fiber.ErrInternalServerError
 		}
 
-		var contentType string
+		contentType := mime.TypeByExtension(filepath.Ext(file))
 
-		if metadata.ContentType == nil {
-			contentType = mime.TypeByExtension(filepath.Ext(file))
-
-			if contentType == "" {
-				contentType = fiber.MIMEOctetStream
-			}
-		} else {
-			contentType = *metadata.ContentType
+		if contentType == "" {
+			contentType = fiber.MIMEOctetStream
 		}
 
 		writer := ctx.Response().BodyWriter()
