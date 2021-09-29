@@ -49,7 +49,7 @@ func File(s3 *util.S3) fiber.Handler {
 		}
 
 		ctx.Set(fiber.HeaderContentType, contentType)
-		ctx.Set(fiber.HeaderCacheControl, viper.GetString("cache"))
+		ctx.Set(fiber.HeaderCacheControl, viper.GetString("cache-control"))
 
 		return nil
 	}

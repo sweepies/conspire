@@ -75,7 +75,7 @@ func Upload(s3 *util.S3) fiber.Handler {
 		}
 
 		// TODO: Add an option to randomly generate file names (or validate input), instead of accepting user input
-		_, errUpload := s3.UploadObject(bucket, fileName, file, contentType, viper.GetString("cache"), viper.GetBool("acl"))
+		_, errUpload := s3.UploadObject(bucket, fileName, file, contentType, viper.GetString("cache-control"), viper.GetBool("acl"))
 
 		if errUpload != nil {
 			go log.Err(errUpload).Msg("Error uploading file")
