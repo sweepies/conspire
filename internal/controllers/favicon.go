@@ -12,8 +12,9 @@ import (
 func Favicon(staticFs fs.FS, hostnames map[string]bool) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		ctx.Set(fiber.HeaderContentType, "image/x-icon")
+		host := ctx.Hostname()
 
-		if !hostnames[ctx.Hostname()] {
+		if !hostnames[host] {
 			f, err := staticFs.Open("favicon/default.ico")
 
 			if err != nil {
@@ -25,7 +26,7 @@ func Favicon(staticFs fs.FS, hostnames map[string]bool) fiber.Handler {
 			return ctx.Send(bytes)
 		}
 
-		f, err := staticFs.Open("favicon/" + ctx.Hostname() + ".ico")
+		f, err := staticFs.Open("favicon/" + host + ".ico")
 
 		if err != nil {
 			return fiber.ErrNotFound

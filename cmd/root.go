@@ -13,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/template/html"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -26,79 +25,55 @@ import (
 
 var (
 	EmbedFs fs.FS
-	cfgFile string
 	app     *fiber.App
 	s3      *util.S3
 )
 
 var Config struct {
-	S3Endpoint   string `validate:"vrequired" viper:"s3-endpoint"`
-	S3Bucket     string `validate:"vrequired" viper:"s3-bucket"`
+	S3Endpoint   string `validate:"omitempty" viper:"s3-endpoint"`
+	S3Bucket     string `validate:"v_required" viper:"s3-bucket"`
 	SetPublicACL bool   `validate:"omitempty" viper:"acl"`
-	CacheControl string `validate:"omitempty" viper:"cache"`
+	CacheControl string `validate:"omitempty" viper:"cache-control"`
+	RandomIndex  bool   `validate:"omitempty" viper:"random-index"`
 }
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:    "conspire",
-	Short:  "An S3-based file sharing server",
-	PreRun: preRun,
-	Run:    run,
+	Use:              "conspire",
+	Short:            "An S3-based file sharing server",
+	PersistentPreRun: initConfig,
+	Run:              run,
+}
+
+func Execute() {
+	cobra.CheckErr(rootCmd.Execute())
 }
 
 func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.conspire.yaml)")
-	rootCmd.Flags().StringVar(&Config.S3Endpoint, getConfigViperTagFromField("S3Endpoint"), "https://s3.amazonaws.com", "the S3 endpoint to use")
-	rootCmd.Flags().StringVar(&Config.S3Bucket, getConfigViperTagFromField("S3Bucket"), "", "the S3 bucket to use (e.g. my-files)")
-	rootCmd.Flags().BoolVar(&Config.SetPublicACL, getConfigViperTagFromField("SetPublicACL"), false, "set to true to set a public read ACL on objects")
-	rootCmd.Flags().StringVar(&Config.CacheControl, getConfigViperTagFromField("CacheControl"), "public, max-age=31536000", "the Cache-Control string to use for uploaded objects")
-
-	// bind flags to viper
-	viper.BindPFlags(rootCmd.Flags())
-
-	// replace use '_' as '-' for environment variables
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-
-	cobra.OnInitialize(initConfig)
-}
-
-func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		home, err := homedir.Dir()
-		cobra.CheckErr(err)
-
-		// look for $HOME/conspire.(json|toml|yaml|yml|hcl|ini|env|properties)
-		viper.AddConfigPath(home)
-		viper.SetConfigName("conspire")
-	}
-
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		log.Debug().Str("file", viper.ConfigFileUsed()).Msg("Using config file")
-	}
+	rootCmd.Flags().StringVar(&Config.S3Endpoint, "s3-endpoint", "https://s3.amazonaws.com", "the S3 endpoint to use")
+	rootCmd.Flags().StringVar(&Config.S3Bucket, "s3-bucket", "", "the S3 bucket to use")
+	rootCmd.Flags().BoolVar(&Config.SetPublicACL, "acl", false, "pass this flag to set a public read ACL on objects")
+	rootCmd.Flags().StringVar(&Config.CacheControl, "cache-control", "public, max-age=31536000", "the Cache-Control string to use for uploaded objects")
+	rootCmd.Flags().BoolVar(&Config.RandomIndex, "random-index", false, "pass this flag to use a random hostname's index and favicon instead of the default when one cannot be found")
 }
 
 // Runs before startup to check flags
-func preRun(cmd *cobra.Command, args []string) {
-	// we need to check if viper is getting correct values, not the config struct itself
+func initConfig(cmd *cobra.Command, args []string) {
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.BindPFlags(cmd.Flags())
+	viper.AutomaticEnv()
+
 	validate := validator.New()
 
 	// use the value of 'viper' tag as the name of the StructField for validation
 	validate.RegisterTagNameFunc(func(fl reflect.StructField) string {
-		name := strings.SplitN(fl.Tag.Get("viper"), ",", 2)[0]
-		if name == "-" {
-			return ""
-		}
-		return name
+		return fl.Tag.Get("viper")
 	})
 
+	// values aren't loaded into the Config struct unless they are Cobra flags
 	// override the 'required' validation to instead check if the value is stored with viper
-	validate.RegisterValidation("vrequired", func(fl validator.FieldLevel) bool {
+	validate.RegisterValidation("v_required", func(fl validator.FieldLevel) bool {
 		return viper.GetString(fl.FieldName()) != ""
 	}, true)
 
@@ -111,7 +86,6 @@ func preRun(cmd *cobra.Command, args []string) {
 			}
 			log.Error().Str("flag", err.Namespace()).Str("validation", validation).Msg("Config flag failed validation")
 		}
-
 		log.Fatal().Msg("One or more config flags failed validation")
 	}
 }
@@ -120,10 +94,6 @@ func run(cmd *cobra.Command, args []string) {
 	// init S3 connection
 	chanS3Conn := make(chan *util.S3)
 	go util.NewS3(chanS3Conn, viper.GetString("s3-endpoint"))
-
-	// init auth middleware
-	chanAuthMiddleware := make(chan fiber.Handler)
-	go middleware.Auth(chanAuthMiddleware)
 
 	log.Info().Str("version", "todo").Msg("Starting conspire")
 
@@ -167,18 +137,20 @@ func run(cmd *cobra.Command, args []string) {
 		BodyLimit:    100 * 1024 * 1024, // 100MiB
 	})
 
+	app.Use(recover.New())
+
+	if viper.GetBool("random-index") {
+		app.Use(middleware.RandomIndex(hostnames))
+	}
+
 	app.Get("/", controllers.Index(staticFs, hostnames))
 	app.Get("/favicon.ico", controllers.Favicon(staticFs, hostnames))
-
-	app.Use(recover.New())
-	app.Use(middleware.Attribution())
-	app.Use("/upload", <-chanAuthMiddleware)
 
 	s3 = <-chanS3Conn
 
 	app.Get("/:file/preview", handlers.ImagePreview)
 	app.Get("/:file", controllers.File(s3))
-	app.Post("/:file", controllers.Upload(s3))
+	// app.Post("/:file", controllers.Upload(s3)) TODO authenticate this
 
 	port := os.Getenv("PORT")
 
@@ -187,24 +159,4 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	log.Fatal().Err(app.Listen(":" + port)).Send()
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
-}
-
-// really want to avoid setting the viper key name more than once. this is a horrible hack
-func getConfigViperTagFromField(fl string) string {
-	field, ok := reflect.TypeOf(&Config).Elem().FieldByName(fl)
-
-	viperTag, ok2 := field.Tag.Lookup("viper")
-
-	if !ok || !ok2 {
-		panic("Field name specified in flags or viper tag on field not found")
-	}
-
-	return viperTag
-
 }

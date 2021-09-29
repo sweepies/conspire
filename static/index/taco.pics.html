@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>taco pics</title>
+  <style>
+    body {
+      background-color: lightBlue;
+    }
+
+    #snow {
+      background-image: url('https://user-images.githubusercontent.com/7191851/135184707-0f7a0ba6-5787-41c4-b411-959d60871b20.png'), url('https://user-images.githubusercontent.com/7191851/135184707-0f7a0ba6-5787-41c4-b411-959d60871b20.png');
+      
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      animation: snow 5000s linear infinite;
+    }
+
+    @keyframes snow {
+      0% {
+        background-position: 0% 0%, 0% 0%;
+      }
+
+      100% {
+        background-position: 10000% 10000%, -10000% -20000%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="snow">
+  </div>
+</body>
+
+</html>
